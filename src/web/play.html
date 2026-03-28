@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Играть — РФ</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html">⬡ РФ</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Главная</a></li>
+    <li><a href="characters.html">Персонажи</a></li>
+    <li><a href="play.html" class="active">Играть</a></li>
+  </ul>
+</nav>
+
+<main>
+  <div class="page-header">
+    <h1>Играть</h1>
+    <p>Счётчик БН и случайный врождённый навык</p>
+  </div>
+
+  <!-- БН COUNTER -->
+  <div class="bn-wrap">
+    <div class="bn-card">
+      <div class="bn-label">Баллы Надежды</div>
+      <div class="bn-number" id="bnVal">10</div>
+      <div class="bn-sub">из 20</div>
+      <div class="bn-bar-bg">
+        <div class="bn-bar-fill" id="bnBar"></div>
+      </div>
+      <div class="bn-btns">
+        <button class="bn-btn m" onclick="changeBN(-3)">−3</button>
+        <button class="bn-btn m" onclick="changeBN(-2)">−2</button>
+        <button class="bn-btn m" onclick="changeBN(-1)">−1</button>
+        <button class="bn-btn p" onclick="changeBN(1)">+1</button>
+        <button class="bn-btn p" onclick="changeBN(2)">+2</button>
+        <button class="bn-btn p" onclick="changeBN(3)">+3</button>
+        <button class="bn-btn p" onclick="changeBN(5)">+5</button>
+      </div>
+      <button class="bn-reset" onclick="resetBN()">сбросить до 10</button>
+      <div class="bn-status" id="bnStatus"></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- NAVYK DRAW -->
+  <div class="navyk-wrap">
+    <div class="page-header" style="text-align:center; margin-bottom:1.25rem;">
+      <h2 style="font-size:1.3rem; font-weight:800;">Врождённый навык</h2>
+      <p>Каждый игрок тянет 1 карту в начале партии</p>
+    </div>
+
+    <div class="navyk-card" id="navykCard">
+      <div class="navyk-empty">Нажми кнопку чтобы вытянуть навык</div>
+    </div>
+
+    <button class="btn btn-primary btn-full btn-lg" onclick="drawNavyk()">Вытянуть навык</button>
+  </div>
+</main>
+
+<footer>Ретикулярная Формация · Версия 0.1</footer>
+
+<script>
+// ─── БН ───────────────────────────────────────────────
+let bn = 10;
+
+function updateBN() {
+  const val  = document.getElementById('bnVal');
+  const bar  = document.getElementById('bnBar');
+  const stat = document.getElementById('bnStatus');
+
+  val.textContent = bn;
+
+  const pct = (bn / 20) * 100;
+  bar.style.width = pct + '%';
+
+  if (bn <= 4)       { bar.style.background = '#dc2626'; val.style.color = '#f87171'; }
+  else if (bn <= 9)  { bar.style.background = '#ea580c'; val.style.color = '#fb923c'; }
+  else if (bn <= 14) { bar.style.background = '#ca8a04'; val.style.color = '#fbbf24'; }
+  else               { bar.style.background = '#059669'; val.style.color = '#34d399'; }
+
+  if (bn >= 20) {
+    stat.style.display = 'block';
+    stat.style.background = 'rgba(5,150,105,0.15)';
+    stat.style.color = '#34d399';
+    stat.style.border = '1px solid rgba(5,150,105,0.3)';
+    stat.textContent = '🧠 РФ запущена — коматозник просыпается!';
+  } else if (bn <= 0) {
+    stat.style.display = 'block';
+    stat.style.background = 'rgba(220,38,38,0.15)';
+    stat.style.color = '#f87171';
+    stat.style.border = '1px solid rgba(220,38,38,0.3)';
+    stat.textContent = '💀 РФ погасла — коматозник умирает';
+  } else {
+    stat.style.display = 'none';
+  }
+}
+
+function changeBN(delta) {
+  bn = Math.max(0, Math.min(20, bn + delta));
+  updateBN();
+}
+
+function resetBN() {
+  bn = 10;
+  updateBN();
+}
+
+updateBN();
+
+// ─── НАВЫКИ ────────────────────────────────────────────
+const FLAG_COLORS = {
+  'Логика': '#2563eb', 'Эмоции': '#dc2626', 'Дерзость': '#ea580c',
+  'Доброта': '#16a34a', 'Хитрость': '#7c3aed', 'Уверенность': '#ca8a04', 'Знания': '#0891b2'
+};
+
+const navyki = [
+  {
+    name: 'Косолапие', flag: 'Логика',
+    flavor: 'Ходишь немного иначе — давно привык, другие замечают раньше тебя',
+    plus:  'На событиях со школой или детством: местный бугай видит родственную душу — автоматически +1 союзник без броска',
+    minus: 'На событиях со спортом или погоней: −1 доступный вариант ответа'
+  },
+  {
+    name: 'Хроническая бессонница', flag: 'Логика',
+    flavor: 'Пока все спят — ты думаешь. Уже не первый год',
+    plus:  'На ночных событиях: +1 вариант ответа',
+    minus: 'Когда получаешь «Стресс»: теряешь флаг Логика на 1 ход'
+  },
+  {
+    name: 'Приступы смеха не вовремя', flag: 'Эмоции',
+    flavor: 'Само выходит. Ты и рад бы сдержаться',
+    plus:  'На событиях с конфликтом: бросок — орёл разряжает обстановку +1 БН, решка — «Нарушение»',
+    minus: 'В бою с боссом: в первой фазе твой ответ не засчитывается'
+  },
+  {
+    name: 'Слёзы на пустом месте', flag: 'Эмоции',
+    flavor: 'Тебе самому неловко, но ничего не поделаешь',
+    plus:  'На событиях с «Доброта»: если плачешь — +1 БН дополнительно',
+    minus: 'На событиях с «Дерзость»: не можешь выбрать этот вариант'
+  },
+  {
+    name: 'Громкий голос', flag: 'Дерзость',
+    flavor: 'Слышат все — хочешь ты этого или нет',
+    plus:  'Раз за секцию: «позови» — союзник в той же секции использует способность вне очереди',
+    minus: 'На событиях со скрытностью: −1 вариант «Хитрость»'
+  },
+  {
+    name: 'Провокатор от природы', flag: 'Дерзость',
+    flavor: 'Что-то в тебе заводит людей. Ты не специально',
+    plus:  'С НПС-противниками: провоцируешь раскрыть скрытый предмет или информацию',
+    minus: 'Нейтральные НПС изначально с подозрением: первый бросок −1 вариант'
+  },
+  {
+    name: 'Жалостливое лицо', flag: 'Доброта',
+    flavor: 'Тебе сложно отказать. Ты сам не понимаешь почему',
+    plus:  'Раз за секцию на нейроне НПС: получаешь предмет без выполнения условия квеста',
+    minus: 'Раз за секцию: обязан отреагировать на чужое событие о помощи'
+  },
+  {
+    name: 'Своя еда с собой', flag: 'Доброта',
+    flavor: 'Всегда что-нибудь найдётся. Бутерброд, яблоко, что угодно',
+    plus:  'Раз за партию: угощаешь союзника — снимаешь «Стресс» без карты',
+    minus: 'На событиях с быстрой реакцией: теряешь ход — копаешься в сумке'
+  },
+  {
+    name: 'Неприметная внешность', flag: 'Хитрость',
+    flavor: 'Тебя не замечают. Иногда это очень кстати',
+    plus:  'На событиях с патрулём или конфликтом: можешь пройти мимо без броска',
+    minus: 'Раз за игру: не получаешь предмет от цепной реакции — о тебе забыли'
+  },
+  {
+    name: 'Привычка врать по мелочи', flag: 'Хитрость',
+    flavor: 'Само выходит. Даже когда не нужно',
+    plus:  'На событиях с отмазкой: +1 дополнительный вариант ответа',
+    minus: 'Раз за игру при первой решке с НПС: НПС не верит даже правде'
+  },
+  {
+    name: 'Военная выправка', flag: 'Уверенность',
+    flavor: 'Держишься прямо. Люди это считывают раньше чем ты открываешь рот',
+    plus:  'С НПС-авторитетами (полиция, начальники): воспринимают как равного — +1 вариант «Уверенность»',
+    minus: 'На расслабленных событиях в компании: −1 вариант «Эмоции»'
+  },
+  {
+    name: 'Привычка не извиняться', flag: 'Уверенность',
+    flavor: 'Не потому что злой. Просто слова не идут',
+    plus:  'После провала события: не получаешь «Стресс»',
+    minus: 'Когда твой провал затронул другого: тот теряет −1 БН'
+  },
+  {
+    name: 'Старший ребёнок в семье', flag: 'Знания',
+    flavor: 'Рано повзрослел. Научился разруливать то, что взрослые не замечают',
+    plus:  'На событиях с домашним конфликтом или семейной темой: +1 вариант ответа',
+    minus: 'Раз за игру: обязан отказаться от предложенной помощи союзника'
+  },
+  {
+    name: 'Техническое мышление', flag: 'Знания',
+    flavor: 'Всё разбираешь на части. Иногда это мешает просто почувствовать',
+    plus:  'На событиях с техникой или логистикой: автоматически выбираешь оптимальный вариант',
+    minus: 'На событиях с «Эмоции» где нужно почувствовать: флаг «Знания» не работает'
+  }
+];
+
+let lastIndex = -1;
+
+function drawNavyk() {
+  let idx;
+  do { idx = Math.floor(Math.random() * navyki.length); } while (idx === lastIndex && navyki.length > 1);
+  lastIndex = idx;
+
+  const n = navyki[idx];
+  const color = FLAG_COLORS[n.flag] || '#555';
+  const card  = document.getElementById('navykCard');
+
+  card.style.borderColor = color;
+  card.innerHTML = `
+    <div class="navyk-flag">
+      <span class="flag" style="background:${color};font-size:0.85rem;padding:0.25rem 0.75rem;">${n.flag}</span>
+    </div>
+    <div class="navyk-name">${n.name}</div>
+    <div class="navyk-flavor">"${n.flavor}"</div>
+    <div class="navyk-effects">
+      <div class="navyk-effect-row plus">
+        <span class="navyk-icon">✦</span>
+        <span>${n.plus}</span>
+      </div>
+      <div class="navyk-effect-row minus">
+        <span class="navyk-icon">✧</span>
+        <span>${n.minus}</span>
+      </div>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
